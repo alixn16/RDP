@@ -1,0 +1,53 @@
+name: TECHNOVISION - LiteManager
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Start Building...
+    runs-on: windows-latest
+    timeout-minutes: 9999
+
+    steps:
+      - name: Create Required Files
+        shell: cmd
+        run: |
+          echo @echo off > show.bat
+          echo echo Welcome to TECHNOVISION >> show.bat
+          echo pause >> show.bat
+
+          echo @echo off > loop.bat
+          echo :start >> loop.bat
+          echo echo Running loop... >> loop.bat
+          echo timeout /t 5 >nul >> loop.bat
+          echo goto start >> loop.bat
+
+          echo import pyautogui as pag > setup.py
+          echo pag.moveTo(500, 300, duration=1) >> setup.py
+          echo pag.click() >> setup.py
+
+          echo @echo off > wall.bat
+          echo reg add "HKCU\Control Panel\Desktop" /v Wallpaper /t REG_SZ /d "%cd%\wallpaper.jpg" /f >> wall.bat
+          echo RUNDLL32.EXE user32.dll,UpdatePerUserSystemParameters >> wall.bat
+
+      - name: Install Essentials
+        shell: cmd
+        run: |
+          powershell -Command "Expand-Archive -Path 'litemanager.zip' -DestinationPath '%cd%'" || echo Skipped ZIP
+          pip install pyautogui --quiet
+          choco install vcredist-all --no-progress
+
+      - name: Run Setup Script
+        shell: cmd
+        run: |
+          python setup.py
+          call wall.bat
+
+      - name: Show TECHNOVISION Banner
+        shell: cmd
+        run: cmd /c show.bat
+
+      - name: Start Loop
+        shell: cmd
+        run: cmd /c loop.bat
